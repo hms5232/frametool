@@ -337,6 +337,7 @@ dependencies = [
 name = "frametool"
 version = "0.1.0"
 dependencies = [
+ "clap",
  "framework_lib",
 ]
 
