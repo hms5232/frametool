@@ -1,29 +1,43 @@
-mod subcommands;
+mod power;
+
 use clap::{CommandFactory, Parser, Subcommand};
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
 struct Cli {
     #[clap(subcommand)]
-    command: subcommands::item::Command,
+    command: Command,
+}
+
+#[derive(Subcommand, Debug)]
+pub(crate) enum Command {
+    /// Get the charger and battery status, equal to `framework_tool --power`
+    Power {
+        //
+    },
+    /// Get (without argument) or set (provide 1-100) the battery charge limit
+    Battery {
+        /// Set the battery charge limit (1-100)
+        limit: Option<u8>,
+    },
 }
 
 fn main() {
     let cli = Cli::parse();
     #[allow(unreachable_patterns)]
     match cli.command {
-        subcommands::item::Command::Power { .. } => {
-            subcommands::item::power::run();
+        Command::Power { .. } => {
+            power::info();
         }
-        subcommands::item::Command::Battery { limit } => {
+        Command::Battery { limit } => {
             if let Some(percentage) = limit {
                 if percentage < 1 || percentage > 100 {
                     eprintln!("Charge limit must be between 1 and 100");
                     return;
                 }
-                subcommands::item::battery::set_charge_limit(percentage);
+                power::battery::set_charge_limit(percentage);
             }
-            subcommands::item::battery::get_charge_limit();
+            power::battery::get_charge_limit();
         }
         _ => Cli::command().print_help().unwrap(),
     }
