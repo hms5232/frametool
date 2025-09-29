@@ -18,6 +18,7 @@ pub(crate) enum Command {
     /// Get (without argument) or set (provide 1-100) the battery charge limit
     Battery {
         /// Set the battery charge limit (1-100)
+        #[clap(value_parser=clap::value_parser!(u8).range(1..=100))]
         limit: Option<u8>,
     },
 }
@@ -31,10 +32,6 @@ fn main() {
         }
         Command::Battery { limit } => {
             if let Some(percentage) = limit {
-                if percentage < 1 || percentage > 100 {
-                    eprintln!("Charge limit must be between 1 and 100");
-                    return;
-                }
                 power::battery::set_charge_limit(percentage);
             }
             power::battery::get_charge_limit();
