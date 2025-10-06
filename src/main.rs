@@ -32,9 +32,9 @@ fn main() {
         }
         Command::Battery { limit } => {
             if let Some(percentage) = limit {
-                power::battery::set_charge_limit(percentage);
+                power::battery::set_max_percentage(percentage);
             }
-            power::battery::get_charge_limit();
+            power::battery::get_max_percentage();
         }
         _ => Cli::command().print_help().unwrap(),
     }
