@@ -1,3 +1,4 @@
+mod led;
 mod power;
 
 use clap::{CommandFactory, Parser, Subcommand};
@@ -23,6 +24,13 @@ enum Command {
         /// Set the battery charge limit (1-100)
         #[clap(value_parser=clap::value_parser!(u8).range(1..=100))]
         limit: Option<u8>,
+    },
+    /// Power button/fingerprint LED information/setting.
+    /// Run without subcommand, show the LED status (equal to `framework_tool --fp-led-level`).
+    /// To see usage of subcommands, run with `-h`.
+    Led {
+        #[command(subcommand)]
+        command: Option<LedCommand>,
     },
 }
 
@@ -50,6 +58,20 @@ enum PowerChargeCommand {
     },
 }
 
+/// Subcommands under `led`.
+#[derive(Subcommand, Debug)]
+enum LedCommand {
+    /// Get (without argument) or set (provide level) the LED level
+    Level {
+        level: Option<framework_lib::commandline::FpBrightnessArg>,
+    },
+    /// Get (without argument) or set (provide percentage) the LED brightness
+    Brightness {
+        #[clap(value_parser=clap::value_parser!(u8).range(1..=100))]
+        percentage: Option<u8>,
+    },
+}
+
 fn main() {
     let cli = Cli::parse();
     #[allow(unreachable_patterns)]
@@ -72,6 +94,24 @@ fn main() {
             }
             power::battery::get_max_percentage();
         }
+        Command::Led { command } => match command {
+            Some(LedCommand::Level { level }) => {
+                if let Some(level) = level {
+                    let _ = led::set_level(level);
+                }
+                led::get_and_print_info();
+            }
+            Some(LedCommand::Brightness { percentage }) => {
+                if let Some(percentage) = percentage {
+                    let _ = led::set_brightness(percentage);
+                }
+                led::get_and_print_info();
+            }
+            None => {
+                led::get_and_print_info();
+                println!("\n\n>>> To see usage of subcommands under led, run with `-h`.")
+            }
+        },
         _ => Cli::command().print_help().unwrap(),
     }
 }
